@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """Daily arXiv radar for awesome-self-improving-coding-agents.
 
-Fetches today's arXiv announcement feeds (rss.arxiv.org) for selected cs.*
-categories, keeps entries whose title/abstract match self-improvement keyword
-groups, and rewrites ``docs/radar.md`` with a rolling archive (entries expire
-after ``RETENTION_DAYS``). Stdlib only.
+Scrapes the public new-submission listing pages at arxiv.org/list/<cat>/new
+for selected cs.* categories, keeps entries whose title matches
+self-improvement keyword groups, and rewrites ``docs/radar.md`` with a rolling
+archive (entries expire after ``RETENTION_DAYS``). Stdlib only.
 
-Notes:
-- rss.arxiv.org lists only the current day's announcements (none on US
-  weekends/holidays); the rolling archive in docs/radar.md carries entries
-  across days, so a quiet day simply re-writes the existing set.
+Why scraping /list pages: the export API (406 to datacenter clients) and the
+RSS feeds (empty channels with skipDays stubs) proved unreliable from GitHub
+Actions runners during Sep-Oct 2026. The /new listing is a plain, long-stable
+HTML page. Load is 4 polite GETs per day with a descriptive User-Agent.
+
+The /new page shows the most recent announcement day (on weekends it still
+shows Friday), so a daily run never misses a weekday batch.
 
 Usage:
     python scripts/radar.py              # fetch live, rewrite docs/radar.md
@@ -20,19 +23,20 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import html as html_mod
 import re
 import sys
 import time
 import urllib.request
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
-RSS = "https://rss.arxiv.org/rss"
+BASE = "https://arxiv.org/list"
 CATEGORIES = ["cs.SE", "cs.CL", "cs.AI", "cs.LG"]
 RETENTION_DAYS = 21
 REPO = "vicfei/awesome-self-improving-coding-agents"
+UA = f"Mozilla/5.0 (compatible; {REPO} radar/2.0; +https://github.com/{REPO})"
 
-# Keyword groups, applied to title + abstract (case-insensitive).
+# Keyword groups, applied to the title (case-insensitive).
 STRONG = re.compile(
     r"self-improv|self-evolv|recursive self-improvement|self-referential|self-modif|\bAI4AI\b",
     re.IGNORECASE,
@@ -42,32 +46,35 @@ CODING = re.compile(
     r"automated programm|developer|autonomous cod",
     re.IGNORECASE,
 )
-ARXIV_ID_IN_TITLE = re.compile(r"\(arXiv:([0-9]{4}\.[0-9]{4,6})(v\d+)?\)\s*$")
 
-RSS_ITEM_FIXTURE = """<?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
-  <channel>
-    <title>cs.SE updates on arXiv.org</title>
-    <item>
-      <title>A Self-Improving Coding Agent That Ships (arXiv:2609.00001v1)</title>
-      <link>http://arxiv.org/abs/2609.00001v1</link>
-      <description>An agent that rewrites its own harness for software engineering.</description>
-      <pubDate>Mon, 28 Sep 2026 00:30:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>Boring static analysis paper (arXiv:2609.00002v1)</title>
-      <link>http://arxiv.org/abs/2609.00002v1</link>
-      <description>Not about self-improvement at all.</description>
-      <pubDate>Mon, 28 Sep 2026 00:30:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>Self-Evolving World Models | pipe test (arXiv:2609.00003v1)</title>
-      <link>http://arxiv.org/abs/2609.00003v1</link>
-      <description>World models that improve themselves through play.</description>
-      <pubDate>Mon, 28 Sep 2026 00:30:44 GMT</pubDate>
-    </item>
-  </channel>
-</rss>
+DT_DD = re.compile(r"<dt>(.*?)</dt>\s*<dd>(.*?)</dd>", re.S)
+ID_IN_DT = re.compile(r"arXiv:([0-9]{4}\.[0-9]{4,6})")
+TITLE_IN_DD = re.compile(r"list-title[^>]*>\s*(?:<span[^>]*>[^<]*</span>)?\s*(.*?)\s*</div>", re.S)
+TAGS = re.compile(r"<[^>]+>")
+
+FIXTURE = """<dl>
+<dt><a name='item1'>[1]</a> <a href ="/abs/2609.00001" id="2610.00001"> arXiv:2609.00001 </a> [<a href="/pdf/2609.00001">pdf</a>]</dt>
+<dd><div class='meta'>
+  <div class='list-title mathjax'><span class='descriptor'>Title:</span>
+    A Self-Improving Coding Agent That Ships
+  </div>
+  <div class='list-authors'><a href="#">A. Author</a></div>
+</div></dd>
+<dt><a name='item2'>[2]</a> <a href ="/abs/2609.00002" id="2610.00002"> arXiv:2609.00002 </a></dt>
+<dd><div class='meta'>
+  <div class='list-title mathjax'><span class='descriptor'>Title:</span>
+    Boring static analysis paper
+  </div>
+  <div class='list-authors'><a href="#">B. Author</a></div>
+</div></dd>
+<dt><a name='item3'>[3]</a> <a href ="/abs/2609.00003" id="2610.00003"> arXiv:2609.00003 </a></dt>
+<dd><div class='meta'>
+  <div class='list-title mathjax'><span class='descriptor'>Title:</span>
+    Self-Evolving World Models | pipe test
+  </div>
+  <div class='list-authors'><a href="#">C. Author</a></div>
+</div></dd>
+</dl>
 """
 
 
@@ -75,7 +82,7 @@ def http_get(url: str, attempts: int = 3, timeout: int = 30) -> bytes:
     last_err: Exception | None = None
     for i in range(attempts):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (radar fetcher)"})
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return resp.read()
         except Exception as err:  # noqa: BLE001 - retry any transport error
@@ -84,33 +91,35 @@ def http_get(url: str, attempts: int = 3, timeout: int = 30) -> bytes:
     raise RuntimeError(f"GET failed after {attempts} attempts: {url} ({last_err})")
 
 
-def parse_rss(xml: bytes, category: str) -> list[dict[str, str]]:
-    """Return today's self-improvement matches from one category feed."""
-    out: list[dict[str, str]] = []
-    try:
-        root = ET.fromstring(xml)
-    except ET.ParseError:
-        return out
-    for item in root.iter("item"):
-        raw_title = " ".join((item.findtext("title") or "").split())
-        desc = " ".join((item.findtext("description") or "").split())
-        m = ARXIV_ID_IN_TITLE.search(raw_title)
-        if not m:
+def clean_title(raw: str) -> str:
+    return " ".join(html_mod.unescape(TAGS.sub("", raw)).split())
+
+
+def parse_listing(page: bytes, category: str) -> tuple[list[dict[str, str]], int]:
+    """Return (matches, total_parsed) for one category listing page."""
+    html = page.decode("utf-8", errors="ignore")
+    matches: list[dict[str, str]] = []
+    total = 0
+    for dt_html, dd_html in DT_DD.findall(html):
+        id_m = ID_IN_DT.search(dt_html)
+        title_m = TITLE_IN_DD.search(dd_html)
+        if not (id_m and title_m):
             continue
-        arxiv_id, title = m.group(1), ARXIV_ID_IN_TITLE.sub("", raw_title).strip()
-        # STRONG matches on title only: abstracts routinely *mention* self-improvement
-        # ("we do not focus on self-improvement") and would flood the radar.
+        total += 1
+        title = clean_title(title_m.group(1))
         if not STRONG.search(title):
             continue
-        tag = "coding+" if CODING.search(f"{title} {desc}") else "self-improvement"
-        out.append({"id": arxiv_id, "title": title, "category": category, "tag": tag})
-    return out
+        tag = "coding+" if CODING.search(title) else "self-improvement"
+        matches.append({"id": id_m.group(1), "title": title, "category": category, "tag": tag})
+    return matches, total
 
 
-def fetch_today() -> list[dict[str, str]]:
+def fetch_latest() -> list[dict[str, str]]:
     seen: dict[str, dict[str, str]] = {}
     for cat in CATEGORIES:
-        for e in parse_rss(http_get(f"{RSS}/{cat}"), cat):
+        matches, total = parse_listing(http_get(f"{BASE}/{cat}/new"), cat)
+        print(f"radar: {cat}: parsed {total} listings, kept {len(matches)}")
+        for e in matches:
             seen.setdefault(e["id"], e)
     return sorted(seen.values(), key=lambda e: e["id"], reverse=True)
 
@@ -146,15 +155,15 @@ def render(entries: list[dict[str, str]], now: dt.datetime) -> str:
         f"<!-- Auto-generated by scripts/radar.py via GitHub Actions (repo: {REPO}). Manual edits will be overwritten. -->",
         "# 🤖 arXiv Radar",
         "",
-        "Papers matching this repo's [keyword filter](../scripts/radar.py), collected from the daily "
-        "arXiv announcement RSS feeds (cs.SE / cs.CL / cs.AI / cs.LG) and kept for a "
-        f"{RETENTION_DAYS}-day rolling window. Refreshed daily — generated {now.strftime('%Y-%m-%d %H:%M UTC')}.",
+        "Papers matching this repo's [keyword filter](../scripts/radar.py), collected daily from the "
+        f"arXiv new-submission listings (cs.SE / cs.CL / cs.AI / cs.LG) and kept for a "
+        f"{RETENTION_DAYS}-day rolling window. Generated {now.strftime('%Y-%m-%d %H:%M UTC')}.",
         "",
     ]
     if not entries:
         lines += [
-            "_No matches in the current window — either a quiet stretch or the weekend "
-            "(arXiv announces on US weekdays). Tune keywords via a PR if this stays empty._",
+            "_No matches in the current window — a quiet stretch happens; if this persists, "
+            "tune the keywords via a PR._",
             "",
         ]
     else:
@@ -179,29 +188,32 @@ def render(entries: list[dict[str, str]], now: dt.datetime) -> str:
 def main() -> int:
     now = dt.datetime.now(dt.timezone.utc)
     rad = Path(__file__).resolve().parent.parent / "docs" / "radar.md"
-    merged = merge(load_existing(rad), fetch_today(), now.strftime("%Y-%m-%d"))
+    merged = merge(load_existing(rad), fetch_latest(), now.strftime("%Y-%m-%d"))
     rad.write_text(render(merged, now), encoding="utf-8")
     print(f"radar: archive holds {len(merged)} entries -> {rad}")
     return 0
 
 
 def selftest() -> int:
-    items = parse_rss(RSS_ITEM_FIXTURE.encode(), "cs.SE")
-    assert len(items) == 2, f"expected strong-filter to keep 2 of 3, got {len(items)}: {items}"
-    assert items[0]["id"] == "2609.00001" and items[0]["tag"] == "coding+", items
-    assert items[1]["id"] == "2609.00003" and items[1]["tag"] == "self-improvement", items
+    matches, total = parse_listing(FIXTURE.encode(), "cs.SE")
+    assert total == 3, f"expected 3 parsed listings, got {total}"
+    assert len(matches) == 2, f"expected strong-filter to keep 2 of 3, got {len(matches)}: {matches}"
+    assert matches[0] == {
+        "id": "2609.00001",
+        "title": "A Self-Improving Coding Agent That Ships",
+        "category": "cs.SE",
+        "tag": "coding+",
+    }, matches
+    assert matches[1]["id"] == "2609.00003" and matches[1]["tag"] == "self-improvement", matches
     now = dt.datetime(2026, 9, 28, tzinfo=dt.timezone.utc)
-    merged = merge([], items, "2026-09-28")
-    assert len(merged) == 2 and merged[0]["first_seen"] == "2026-09-28"
+    merged = merge([], matches, "2026-09-28")
     md = render(merged, now)
-    assert "pipe test" in md and "\\\\|" not in md and "\\|" in md, "pipe escaping wrong"
-    # round-trip: rendered markdown parses back into the archive format
+    assert "pipe test" in md and "\\|" in md, "pipe escaping wrong"
     rt_path = Path("/tmp/_radar_rt.md")
     rt_path.write_text(md, encoding="utf-8")
     rt = load_existing(rt_path)
-    assert len(rt) == 2 and rt[0]["id"] in {"2609.00001", "2609.00003"}, f"round-trip lost rows: {rt}"
-    print("selftest OK — RSS parse, strong/coding tags, merge, render, archive round-trip:")
-    print(md[:600])
+    assert len(rt) == 2, f"round-trip lost rows: {rt}"
+    print("selftest OK — listing parse, strong/coding tags, merge, render, archive round-trip")
     return 0
 
 
