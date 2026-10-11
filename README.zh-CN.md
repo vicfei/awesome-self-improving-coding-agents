@@ -124,6 +124,9 @@ flowchart LR
 | [KnowAct](https://github.com/HITsz-TMG/KnowAct) | KnowAct-RL：知识感知强化学习的自改进个人助理。 | 🔄 |
 | [RSIAgent](https://github.com/AetherLabsAI/RSIAgent) | 免训练的多智能体 RSI 框架，面向新环境。 | 🔄 |
 | [Godel_Agent](https://github.com/Arvid-pku/Godel_Agent) | Gödel Agent 论文官方代码。 | 🔁 |
+| [autoresearch](https://github.com/karpathy/autoresearch) — Karpathy | 最小自动科研回路：单 GPU 上 agent 通宵修改 `train.py`，人只写 `program.md`（"科研组织代码"）；固定 5 分钟预算让所有实验可比。 | 🔄 |
+| [Deep Researcher Agent](https://github.com/Xiangyue-Zhang/auto-deep-researcher-24x7) · [论文](https://arxiv.org/abs/2604.05854) | 24/7 深度学习实验 agent，以显式纪律为纲——收窄搜索面、强制结果验证、人类保持掌控。 | 🔄 |
+| [Agent-R1](https://github.com/AgentR1/Agent-R1) · [论文](https://arxiv.org/abs/2511.14460) | 步级 MDP 的智能体 RL 框架——工具调用型编码智能体的训练底座；新增在线策略蒸馏（OPD）。 | 🧩 |
 
 ## 基准
 

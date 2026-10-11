@@ -124,6 +124,9 @@ flowchart LR
 | [KnowAct](https://github.com/HITsz-TMG/KnowAct) | KnowAct-RL: self-improving personal assistant via knowledge-aware RL. | 🔄 |
 | [RSIAgent](https://github.com/AetherLabsAI/RSIAgent) | Training-free multi-agent framework for RSI in new environments. | 🔄 |
 | [Godel_Agent](https://github.com/Arvid-pku/Godel_Agent) | Official code for the Gödel Agent paper. | 🔁 |
+| [autoresearch](https://github.com/karpathy/autoresearch) — Karpathy | The minimal autonomous-research loop: on one GPU the agent edits `train.py` overnight while the human writes `program.md` — the "research org code". Fixed 5-minute budgets keep every experiment comparable. | 🔄 |
+| [Deep Researcher Agent](https://github.com/Xiangyue-Zhang/auto-deep-researcher-24x7) · [paper](https://arxiv.org/abs/2604.05854) | 24/7 deep-learning experimentation agent built on explicit discipline — narrow the search, force result verification, keep humans in control. | 🔄 |
+| [Agent-R1](https://github.com/AgentR1/Agent-R1) · [paper](https://arxiv.org/abs/2511.14460) | Step-level MDP agentic RL framework — the training substrate for tool-using coding agents; adds Online Policy Distillation. | 🧩 |
 
 ## Benchmarks
 
