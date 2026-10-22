@@ -127,6 +127,7 @@ flowchart LR
 | [autoresearch](https://github.com/karpathy/autoresearch) — Karpathy | The minimal autonomous-research loop: on one GPU the agent edits `train.py` overnight while the human writes `program.md` — the "research org code". Fixed 5-minute budgets keep every experiment comparable. | 🔄 |
 | [Deep Researcher Agent](https://github.com/Xiangyue-Zhang/auto-deep-researcher-24x7) · [paper](https://arxiv.org/abs/2604.05854) | 24/7 deep-learning experimentation agent built on explicit discipline — narrow the search, force result verification, keep humans in control. | 🔄 |
 | [Agent-R1](https://github.com/AgentR1/Agent-R1) · [paper](https://arxiv.org/abs/2511.14460) | Step-level MDP agentic RL framework — the training substrate for tool-using coding agents; adds Online Policy Distillation. | 🧩 |
+| [PenguinHarness](https://github.com/Prism-Shadow/penguin-harness) — Prism-Shadow | Harness-level RSI, productized: OPRO / APE / ACE / AWM as pluggable toolkits running on one scoreboard, with per-version snapshots and rollback; tuned for open models. | 🔄 |
 
 ## Benchmarks
 

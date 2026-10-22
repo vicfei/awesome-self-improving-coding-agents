@@ -127,6 +127,7 @@ flowchart LR
 | [autoresearch](https://github.com/karpathy/autoresearch) — Karpathy | 最小自动科研回路：单 GPU 上 agent 通宵修改 `train.py`，人只写 `program.md`（"科研组织代码"）；固定 5 分钟预算让所有实验可比。 | 🔄 |
 | [Deep Researcher Agent](https://github.com/Xiangyue-Zhang/auto-deep-researcher-24x7) · [论文](https://arxiv.org/abs/2604.05854) | 24/7 深度学习实验 agent，以显式纪律为纲——收窄搜索面、强制结果验证、人类保持掌控。 | 🔄 |
 | [Agent-R1](https://github.com/AgentR1/Agent-R1) · [论文](https://arxiv.org/abs/2511.14460) | 步级 MDP 的智能体 RL 框架——工具调用型编码智能体的训练底座；新增在线策略蒸馏（OPD）。 | 🧩 |
+| [PenguinHarness](https://github.com/Prism-Shadow/penguin-harness) — Prism-Shadow | harness 层 RSI 的产品化：OPRO / APE / ACE / AWM 作为可插拔工具包跑在同一记分板上，带版本快照与回滚；为开源模型调优。 | 🔄 |
 
 ## 基准
 
