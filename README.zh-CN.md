@@ -99,6 +99,17 @@ flowchart LR
 | 2025 | [ACE: Agentic Context Engineering](https://arxiv.org/abs/2510.04618) | 🔄 | 会自我生长的上下文：生成器产出不断进化的上下文，在 SWE-bench 上超过静态提示。 |
 | 2025 | [AgentEvolver](https://arxiv.org/abs/2511.10395) — 阿里巴巴 | 🔄 | 自进化多智能体系统：策略进化、记忆进化与工具创新循环。 |
 
+### 训练验证器（自我验证与自我修正）
+
+*验证是所有改进循环必经的闸门——它是独立能力，不是解题的副产品。这一节训练闸门本身。*
+
+| 年份 | 工作 | 标签 | 意义 |
+|---|---|---|---|
+| 2024 | [SCoRe](https://arxiv.org/abs/2409.12917) — Google DeepMind（ICLR 2025） | 🔄 | 在模型自己的修正轨迹上做多轮 RL：奖励第二轮"错改对"、惩罚"对改错"——自我修正是训出来的，不是假设出来的。 |
+| 2025 | [ReVeal](https://arxiv.org/abs/2506.11442) | 🔄 | 奖励验证行为本身：抓住真实 bug 的单元测试从下一轮改进中获得回溯记功（turn 级分配），代码与测试生成共同进化。 |
+| 2025 | [RepExp](https://arxiv.org/abs/2510.11686)（ICLR 2026）· [代码](https://rep-exp.github.io) | 🧩 | 用隐藏状态多样性做探索奖励——验证器要有 diverse 候选才有的选；pass@80 追平 GRPO 的 pass@256。 |
+| 2026 | [Learning to Self-Verify](https://arxiv.org/abs/2602.07594) | 🔄 | 只训判题侧（给自己的解打分）也能提升解题——验证是值得单独训练的独立可迁移能力。 |
+
 ### 自动化 AI 研究与程序进化
 
 | 年份 | 工作 | 标签 | 意义 |

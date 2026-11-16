@@ -99,6 +99,17 @@ flowchart LR
 | 2025 | [ACE: Agentic Context Engineering](https://arxiv.org/abs/2510.04618) | 🔄 | Contexts that grow their own playbooks: generators produce evolving contexts that beat static prompts on SWE-bench. |
 | 2025 | [AgentEvolver](https://arxiv.org/abs/2511.10395) — Alibaba | 🔄 | Self-evolving multi-agent system: strategy evolution, memory evolution, and tool innovation loops. |
 
+### Training the verifier (self-verification & self-correction)
+
+*Verification is the gate every improvement loop runs through — and it is a separate capability, not a byproduct of solving. These train the gatekeeper itself.*
+
+| Year | Work | Label | Why it matters |
+|---|---|---|---|
+| 2024 | [SCoRe](https://arxiv.org/abs/2409.12917) — Google DeepMind (ICLR 2025) | 🔄 | Multi-turn RL on the model's own correction traces: reward second-attempt "wrong→right" fixes, penalize "right→wrong" churn — self-correction trained, not assumed. |
+| 2025 | [ReVeal](https://arxiv.org/abs/2506.11442) | 🔄 | Rewards verification itself: unit tests that catch real bugs get retroactive credit from the next round's improvement (turn-level assignment), so code and test generation co-evolve. |
+| 2025 | [RepExp](https://arxiv.org/abs/2510.11686) (ICLR 2026) · [code](https://rep-exp.github.io) | 🧩 | Exploration bonus from hidden-state diversity — diverse attempts are what a verifier can select among; pass@80 matches GRPO's pass@256. |
+| 2026 | [Learning to Self-Verify](https://arxiv.org/abs/2602.07594) | 🔄 | Training only the judging side (score your own solutions) improves solving as well — verification is a distinct, transferable capability worth training on its own. |
+
 ### Automated AI research and program evolution
 
 | Year | Work | Label | Why it matters |
