@@ -163,6 +163,8 @@ flowchart LR
 
 ## 相邻列表
 
+- [awesome-agentic-ml](https://github.com/vicfei/awesome-agentic-ml) —— 姊妹列表：智能体造模型与数据（训练运行、蒸馏、合成数据）
+- [awesome-weight-editing](https://github.com/vicfei/awesome-weight-editing) —— 姊妹列表：编辑算子深图 · [modifyllm](https://github.com/vicfei/modifyllm) —— 把这些地图落成实践的工具包：带回执、可回滚的编辑 / 微调 / 蒸馏事务
 - [lobehub/awesome-rsi](https://github.com/lobehub/awesome-rsi) —— 覆盖最广的 RSI 研究地图（模型、harness、具身、安全）
 - [Prism-Shadow/awesome-rsi](https://github.com/Prism-Shadow/awesome-rsi) —— 按"被改进对象"分类，配可筛选站点
 - [theseus-labs-rsi/awesome-rsi](https://github.com/theseus-labs-rsi/awesome-rsi) —— 综述 *The Last AI Built by Humans* 配套；L1–L5 自主性分级、带边界说明的产业时间线

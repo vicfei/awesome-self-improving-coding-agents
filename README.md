@@ -163,6 +163,8 @@ Self-improvement cuts both ways. Read these before building:
 
 ## Related lists
 
+- [awesome-agentic-ml](https://github.com/vicfei/awesome-agentic-ml) — sibling list: agents building models & data (training runs, distillation, synthetic data)
+- [awesome-weight-editing](https://github.com/vicfei/awesome-weight-editing) — sibling list: the editing operator in depth · [modifyllm](https://github.com/vicfei/modifyllm) — the toolkit that practices these maps: transactional edit / finetune / distill with receipts
 - [lobehub/awesome-rsi](https://github.com/lobehub/awesome-rsi) — the broad RSI research map (models, harnesses, embodied, safety)
 - [Prism-Shadow/awesome-rsi](https://github.com/Prism-Shadow/awesome-rsi) — taxonomy by improved artifact, with a filterable companion site
 - [theseus-labs-rsi/awesome-rsi](https://github.com/theseus-labs-rsi/awesome-rsi) — companion to the survey *The Last AI Built by Humans*; L1–L5 autonomy levels, industry timeline with caveats
